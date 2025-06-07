@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seguimiento de Metas Anuales</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>Seguimiento de Metas Anuales</h1>
+    
+    <!-- Gráfico Anual -->
+    <div class="graphs-container">
+        <div class="graph annual-graph" id="annual-graph">
+            <div class="progress-circle">
+                <svg viewBox="0 0 36 36">
+                    <circle class="background" cx="18" cy="18" r="15.9155"></circle>
+                    <circle class="progress annual" cx="18" cy="18" r="15.9155"></circle>
+                </svg>
+                <div class="progress-value" id="annual-progress">43%</div>
+            </div>
+            <div class="graph-title">Avance Anual</div>
+            <div class="graph-description">Promedio de todas las categorías</div>
+        </div>
+    </div>
+    
+    <!-- Gráficos por categoría -->
+    <div class="graphs-container">
+        <!-- Salud -->
+        <div class="graph health" id="health-graph" data-category="health">
+            <div class="progress-circle">
+                <svg viewBox="0 0 36 36">
+                    <circle class="background" cx="18" cy="18" r="15.9155"></circle>
+                    <circle class="progress health" cx="18" cy="18" r="15.9155"></circle>
+                </svg>
+                <div class="progress-value" id="health-progress">28%</div>
+            </div>
+            <div class="graph-title">Salud</div>
+            <div class="graph-description">Nada funcionará si no me cuido. Invertir en mi salud es invertir en todo lo demás</div>
+        </div>
+        
+        <!-- Financiero -->
+        <div class="graph financial" id="financial-graph" data-category="financial">
+            <div class="progress-circle">
+                <svg viewBox="0 0 36 36">
+                    <circle class="background" cx="18" cy="18" r="15.9155"></circle>
+                    <circle class="progress financial" cx="18" cy="18" r="15.9155"></circle>
+                </svg>
+                <div class="progress-value" id="financial-progress">97%</div>
+            </div>
+            <div class="graph-title">Financiero</div>
+            <div class="graph-description">Tener paz financiera para vivir tranquilo y avanzar hacia mis sueños</div>
+        </div>
+        
+        <!-- Vivienda -->
+        <div class="graph housing" id="housing-graph" data-category="housing">
+            <div class="progress-circle">
+                <svg viewBox="0 0 36 36">
+                    <circle class="background" cx="18" cy="18" r="15.9155"></circle>
+                    <circle class="progress housing" cx="18" cy="18" r="15.9155"></circle>
+                </svg>
+                <div class="progress-value" id="housing-progress">9%</div>
+            </div>
+            <div class="graph-title">Vivienda</div>
+            <div class="graph-description">Ser dueño de mi espacio, asegurar mi futuro y consolidar mi autonomía</div>
+        </div>
+        
+        <!-- Hazeladd -->
+        <div class="graph hazeladd" id="hazeladd-graph" data-category="hazeladd">
+            <div class="progress-circle">
+                <svg viewBox="0 0 36 36">
+                    <circle class="background" cx="18" cy="18" r="15.9155"></circle>
+                    <circle class="progress hazeladd" cx="18" cy="18" r="15.9155"></circle>
+                </svg>
+                <div class="progress-value" id="hazeladd-progress">30%</div>
+            </div>
+            <div class="graph-title">Hazeladd</div>
+            <div class="graph-description">Transformar Hazeladd en un proyecto reconocido, rentable y de impacto real</div>
+        </div>
+        
+        <!-- Sindtech -->
+        <div class="graph sindtech" id="sindtech-graph" data-category="sindtech">
+            <div class="progress-circle">
+                <svg viewBox="0 0 36 36">
+                    <circle class="background" cx="18" cy="18" r="15.9155"></circle>
+                    <circle class="progress sindtech" cx="18" cy="18" r="15.9155"></circle>
+                </svg>
+                <div class="progress-value" id="sindtech-progress">17%</div>
+            </div>
+            <div class="graph-title">Sindtech</div>
+            <div class="graph-description">Darle seguimiento a un producto que me puede cambiar la vida</div>
+        </div>
+        
+        <!-- Trabajo -->
+        <div class="graph work" id="work-graph" data-category="work">
+            <div class="progress-circle">
+                <svg viewBox="0 0 36 36">
+                    <circle class="background" cx="18" cy="18" r="15.9155"></circle>
+                    <circle class="progress work" cx="18" cy="18" r="15.9155"></circle>
+                </svg>
+                <div class="progress-value" id="work-progress">78%</div>
+            </div>
+            <div class="graph-title">Trabajo</div>
+            <div class="graph-description">Aprovechar esta experiencia como base para futuros proyectos</div>
+        </div>
+    </div>
+    
+    <!-- Modal de edición -->
+    <div class="modal" id="edit-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" id="modal-title">Editar Tareas</div>
+                <button class="close-modal">&times;</button>
+            </div>
+            <ul class="task-list" id="modal-task-list">
+                <!-- Las tareas se agregarán aquí dinámicamente -->
+            </ul>
+            <div class="add-task-container">
+                <input type="text" class="add-task-input" id="new-task-input" placeholder="Nueva tarea">
+                <button class="add-task-button" id="add-task-button">Agregar</button>
+            </div>
+        </div>
+    </div>
+    <!-- Firebase SDK -->
+    <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.9.0/firebase-analytics.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyA2tEhDoNNfCWzl44tC0izKcF_9psYPzs8",
+        authDomain: "goal-tracker-f3ef4.firebaseapp.com",
+        projectId: "goal-tracker-f3ef4",
+        storageBucket: "goal-tracker-f3ef4.firebasestorage.app",
+        messagingSenderId: "228396502",
+        appId: "1:228396502:web:698d7ac28a745a15a26877",
+        measurementId: "G-7QJ2VF1W69"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    </script>
+
+    <!-- Tu app -->
+    <script src="app.js" defer></script>
+
+
+    
+</body>
+</html>
