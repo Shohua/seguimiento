@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seguimiento de Metas Anuales</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+        
+        /* Contenedor principal de gráficos */
+        .graphs-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        /* Estilos para todos los gráficos */
+        .graph {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            padding: 20px;
+            width: 200px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .graph:hover {
+            transform: scale(1.05);
+        }
+        
+        /* Gráfico anual (más grande) */
+        .annual-graph {
+            width: 100%;
+            max-width: 250px;
+            background-color: #2c3e50;
+            color: white;
+            margin-bottom: 30px;
+        }
+        .annual-graph .graph-title {
+            color: white;
+            font-size: 24px;
+        }
+        .annual-graph .graph-description {
+            color: #ecf0f1;
+        }
+        
+        /* Estilos comunes para gráficos circulares */
+        .progress-circle {
+            width: 150px;
+            height: 150px;
+            margin: 0 auto 15px;
+            position: relative;
+        }
+        .progress-circle svg {
+            width: 100%;
+            height: 100%;
+        }
+        .progress-circle circle {
+            fill: none;
+            stroke-width: 10;
+            stroke-linecap: round;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+        .progress-circle circle.background {
+            stroke: #f0f0f0;
+        }
+        .progress-circle circle.progress {
+            stroke-dasharray: 0 100;
+            transition: stroke-dasharray 0.5s ease;
+        }
+        .progress-value {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .annual-graph .progress-value {
+            color: white;
+            font-size: 32px;
+        }
+        .graph-title {
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+        .graph-description {
+            font-size: 14px;
+            color: #666;
+            margin-top: 10px;
+        }
+        
+        /* Modal de edición */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .modal-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+        .task-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+        .task-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .task-name {
+            flex-grow: 1;
+            margin-right: 15px;
+        }
+        .task-input-container {
+            display: flex;
+            align-items: center;
+            width: 100px;
+        }
+        .task-input {
+            width: 60px;
+            padding: 5px;
+            text-align: center;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .percent-symbol {
+            margin-left: 5px;
+        }
+        .add-task-container {
+            display: flex;
+            margin-top: 20px;
+        }
+        .add-task-input {
+            flex-grow: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px 0 0 4px;
+        }
+        .add-task-button {
+            background-color: #2c3e50;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 0 4px 4px 0;
+            cursor: pointer;
+        }
+        .delete-task {
+            background: none;
+            border: none;
+            color: #e74c3c;
+            cursor: pointer;
+            margin-left: 15px;
+            font-size: 16px;
+        }
+        
+        /* Colores por categoría */
+        .health { stroke: #3498db; color: #3498db; }
+        .financial { stroke: #2ecc71; color: #2ecc71; }
+        .housing { stroke: #e74c3c; color: #e74c3c; }
+        .hazeladd { stroke: #9b59b6; color: #9b59b6; }
+        .sindtech { stroke: #f39c12; color: #f39c12; }
+        .work { stroke: #1abc9c; color: #1abc9c; }
+        .annual { stroke: #ecf0f1; }
+    </style>
+</head>
+<body>
+    <h1>Seguimiento de Metas Anuales</h1>
+    
+    <!-- Gráfico Anual -->
+    <div class="graphs-container">
+        <div class="graph annual-graph" id="annual-graph">
+            <div class="progress-circle">
+                <svg viewBox="0 0 36 36">
+                    <circle class="background" cx="18" cy="18" r="15.9155"></circle>
+                    <circle class="progress annual" cx="18" cy="18" r="15.9155"></circle>
+                </svg>
+                <div class="progress-value" id="annual-progress">43%</div>
+            </div>
+            <div class="graph-title">Avance Anual</div>
+            <div class="graph-description">Promedio de todas las categorías</div>
+        </div>
+    </div>
+    
+    <!-- Gráficos por categoría -->
+    <div class="graphs-container">
+        <!-- Salud -->
+        <div class="graph health" id="health-graph" data-category="health">
+            <div class="progress-circle">
+                <svg viewBox="0 0 36 36">
+                    <circle class="background" cx="18" cy="18" r="15.9155"></circle>
+                    <circle class="progress health" cx="18" cy="18" r="15.9155"></circle>
+                </svg>
+                <div class="progress-value" id="health-progress">28%</div>
+            </div>
+            <div class="graph-title">Salud</div>
+            <div class="graph-description">Nada funcionará si no me cuido. Invertir en mi salud es invertir en todo lo demás.</div>
+        </div>
+        
+        <!-- Financiero -->
+        <div class="graph financial" id="financial-graph" data-category="financial">
+            <div class="progress-circle">
+                <svg viewBox="0 0 36 36">
+                    <circle class="background" cx="18" cy="18" r="15.9155"></circle>
+                    <circle class="progress financial" cx="18" cy="18" r="15.9155"></circle>
+                </svg>
+                <div class="progress-value" id="financial-progress">97%</div>
+            </div>
+            <div class="graph-title">Financiero</div>
+            <div class="graph-description">Tener paz financiera para vivir tranquilo y avanzar hacia mis sueños</div>
+        </div>
+        
+        <!-- Vivienda -->
+        <div class="graph housing" id="housing-graph" data-category="housing">
+            <div class="progress-circle">
+                <svg viewBox="0 0 36 36">
+                    <circle class="background" cx="18" cy="18" r="15.9155"></circle>
+                    <circle class="progress housing" cx="18" cy="18" r="15.9155"></circle>
+                </svg>
+                <div class="progress-value" id="housing-progress">9%</div>
+            </div>
+            <div class="graph-title">Vivienda</div>
+            <div class="graph-description">Ser dueño de mi espacio, asegurar mi futuro y consolidar mi autonomía</div>
+        </div>
+        
+        <!-- Hazeladd -->
+        <div class="graph hazeladd" id="hazeladd-graph" data-category="hazeladd">
+            <div class="progress-circle">
+                <svg viewBox="0 0 36 36">
+                    <circle class="background" cx="18" cy="18" r="15.9155"></circle>
+                    <circle class="progress hazeladd" cx="18" cy="18" r="15.9155"></circle>
+                </svg>
+                <div class="progress-value" id="hazeladd-progress">30%</div>
+            </div>
+            <div class="graph-title">Hazeladd</div>
+            <div class="graph-description">Transformar Hazeladd en un proyecto reconocido, rentable y de impacto real</div>
+        </div>
+        
+        <!-- Sindtech -->
+        <div class="graph sindtech" id="sindtech-graph" data-category="sindtech">
+            <div class="progress-circle">
+                <svg viewBox="0 0 36 36">
+                    <circle class="background" cx="18" cy="18" r="15.9155"></circle>
+                    <circle class="progress sindtech" cx="18" cy="18" r="15.9155"></circle>
+                </svg>
+                <div class="progress-value" id="sindtech-progress">17%</div>
+            </div>
+            <div class="graph-title">Sindtech</div>
+            <div class="graph-description">Darle seguimiento a un producto que me puede cambiar la vida</div>
+        </div>
+        
+        <!-- Trabajo -->
+        <div class="graph work" id="work-graph" data-category="work">
+            <div class="progress-circle">
+                <svg viewBox="0 0 36 36">
+                    <circle class="background" cx="18" cy="18" r="15.9155"></circle>
+                    <circle class="progress work" cx="18" cy="18" r="15.9155"></circle>
+                </svg>
+                <div class="progress-value" id="work-progress">78%</div>
+            </div>
+            <div class="graph-title">Trabajo</div>
+            <div class="graph-description">Aprovechar esta experiencia como base para futuros proyectos</div>
+        </div>
+    </div>
+    
+    <!-- Modal de edición -->
+    <div class="modal" id="edit-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" id="modal-title">Editar Tareas</div>
+                <button class="close-modal">&times;</button>
+            </div>
+            <ul class="task-list" id="modal-task-list">
+                <!-- Las tareas se agregarán aquí dinámicamente -->
+            </ul>
+            <div class="add-task-container">
+                <input type="text" class="add-task-input" id="new-task-input" placeholder="Nueva tarea">
+                <button class="add-task-button" id="add-task-button">Agregar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Datos iniciales
+        const categories = {
+            health: { 
+                name: 'Salud', 
+                progress: 28, 
+                color: 'health',
+                description: 'Nada funcionará si no me cuido. Invertir en mi salud es invertir en todo lo demás.',
+                tasks: [
+                    { name: 'Realizar exámenes ETS', progress: 99 },
+                    { name: 'Inscribirse en consultorio Copiapó', progress: 100 },
+                    { name: 'Tratar hongos', progress: 0 },
+                    { name: 'Sacar muelas', progress: 0 },
+                    { name: 'Viajar a Santiago 1 vez al mes (3/12)', progress: 25 },
+                    { name: 'Practicar un deporte: buceo o calistenia (0/9) 3 veces a la semana', progress: 0 },
+                    { name: 'Asistir al psicólogo', progress: 0 },
+                    { name: 'no ver XXX (0/9)', progress: 0 }
+                ]
+            },
+            financial: { 
+                name: 'Financiero', 
+                progress: 97, 
+                color: 'financial',
+                description: 'Tener paz financiera para vivir tranquilo y avanzar hacia mis sueños.',
+                tasks: [
+                    { name: 'Calcular ingreso vs gastos', progress: 100 },
+                    { name: 'Planificar presupuesto ajustado por un año', progress: 90 },
+                    { name: 'Diseñar plan de ahorro realista hacia meta de $7.800.000', progress: 100 }
+                ]
+            },
+            housing: { 
+                name: 'Vivienda', 
+                progress: 9, 
+                color: 'housing',
+                description: 'Ser dueño de mi espacio, asegurar mi futuro y consolidar mi autonomía.',
+                tasks: [
+                    { name: 'Ahorrar $7.8MM (2/12)', progress: 17 },
+                    { name: 'Entrar al 60% del RSH', progress: 0 }
+                ]
+            },
+            hazeladd: { 
+                name: 'Hazeladd', 
+                progress: 30, 
+                color: 'hazeladd',
+                description: 'Transformar Hazeladd en un proyecto reconocido, rentable y de impacto real.',
+                tasks: [
+                    { name: 'ganar corfo semilla inicia', progress: 100 },
+                    { name: 'Firmar acuerdo de confidencialidad con Volcán', progress: 50 },
+                    { name: 'Probar aditivo y fabricar planchas', progress: 0 },
+                    { name: 'Lograr ventas de $100K', progress: 0 },
+                    { name: 'cumplir con los requisitos para ganar expande', progress: 0 }
+                ]
+            },
+            sindtech: { 
+                name: 'Sindtech', 
+                progress: 17, 
+                color: 'sindtech',
+                description: 'Participar sin quemarme. Avanzar pero protegiendo mi bienestar emocional.',
+                tasks: [
+                    { name: 'conseguir ingresos como minimo de 50K', progress: 0 },
+                    { name: 'Pilotear Aumi', progress: 50 },
+                    { name: 'Firmar contratos con 3 sindicatos', progress: 0 }
+                ]
+            },
+            work: { 
+                name: 'Trabajo', 
+                progress: 78, 
+                color: 'work',
+                description: 'Aprovechar esta experiencia como base para futuros proyectos, mientras vivo el proceso de forma más amable conmigo mismo.',
+                tasks: [
+                    { name: 'analisis de perfil profesional', progress: 100 },
+                    { name: 'pedir cartas de recomendación y certificados de experiencia', progress: 100 },
+                    { name: 'conseguir trabajo estable', progress: 100 },
+                    { name: 'conseguir prueba de 3 meses', progress: 100 },
+                    { name: 'conseguir contrato hasta fin de año', progress: 0 },
+                    { name: 'realizar 3 cursos de perfeccionamiento', progress: 70 }
+                ]
+            }
+        };
+
+        // Variables globales
+        let currentCategory = null;
+        const editModal = document.getElementById('edit-modal');
+        const modalTaskList = document.getElementById('modal-task-list');
+        const newTaskInput = document.getElementById('new-task-input');
+        const addTaskButton = document.getElementById('add-task-button');
+        const modalTitle = document.getElementById('modal-title');
+        const closeModalButton = document.querySelector('.close-modal');
+
+        // Inicializar la aplicación
+        document.addEventListener('DOMContentLoaded', function() {
+            updateAnnualProgress();
+            setupEventListeners();
+            renderAllGraphs();
+        });
+
+        // Configurar event listeners
+        function setupEventListeners() {
+            // Abrir modal al hacer clic en un gráfico
+            document.querySelectorAll('.graph').forEach(graph => {
+                if (graph.id !== 'annual-graph') {
+                    graph.addEventListener('click', function() {
+                        openEditModal(this.dataset.category);
+                    });
+                }
+            });
+            
+            // Cerrar modal
+            closeModalButton.addEventListener('click', closeEditModal);
+            
+            // Cerrar modal al hacer clic fuera del contenido
+            editModal.addEventListener('click', function(e) {
+                if (e.target === editModal) {
+                    closeEditModal();
+                }
+            });
+            
+            // Agregar nueva tarea
+            addTaskButton.addEventListener('click', addNewTask);
+            newTaskInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    addNewTask();
+                }
+            });
+        }
+
+        // Abrir modal de edición
+        function openEditModal(category) {
+            currentCategory = category;
+            const categoryData = categories[category];
+            
+            // Configurar título del modal
+            modalTitle.textContent = `Editar ${categoryData.name}`;
+            
+            // Limpiar lista de tareas
+            modalTaskList.innerHTML = '';
+            
+            // Agregar tareas existentes
+            categoryData.tasks.forEach((task, index) => {
+                addTaskToModal(task.name, task.progress, index);
+            });
+            
+            // Mostrar modal
+            editModal.style.display = 'flex';
+            newTaskInput.focus();
+        }
+
+        // Cerrar modal de edición
+        function closeEditModal() {
+            editModal.style.display = 'none';
+            currentCategory = null;
+            newTaskInput.value = '';
+        }
+
+        // Agregar tarea al modal
+        function addTaskToModal(name, progress, index) {
+            const taskItem = document.createElement('li');
+            taskItem.className = 'task-item';
+            taskItem.innerHTML = `
+                <div class="task-name">${name}</div>
+                <div class="task-input-container">
+                    <input type="number" class="task-input" value="${progress}" min="0" max="100" data-index="${index}">
+                    <span class="percent-symbol">%</span>
+                </div>
+                <button class="delete-task" data-index="${index}">🗑️</button>
+            `;
+            modalTaskList.appendChild(taskItem);
+            
+            // Configurar event listeners
+            const input = taskItem.querySelector('.task-input');
+            const deleteBtn = taskItem.querySelector('.delete-task');
+            
+            input.addEventListener('change', function() {
+                const value = Math.min(100, Math.max(0, parseInt(this.value) || 0));
+                this.value = value;
+                updateTaskProgress(this.dataset.index, value);
+            });
+            
+            deleteBtn.addEventListener('click', function() {
+                deleteTask(this.dataset.index);
+            });
+        }
+
+        // Agregar nueva tarea
+        function addNewTask() {
+            const taskName = newTaskInput.value.trim();
+            if (taskName && currentCategory) {
+                const categoryData = categories[currentCategory];
+                const newTask = { name: taskName, progress: 0 };
+                categoryData.tasks.push(newTask);
+                
+                // Agregar al modal
+                addTaskToModal(taskName, 0, categoryData.tasks.length - 1);
+                
+                // Limpiar input
+                newTaskInput.value = '';
+                newTaskInput.focus();
+                
+                // Actualizar progreso
+                updateCategoryProgress(currentCategory);
+            }
+        }
+
+        // Actualizar progreso de una tarea
+        function updateTaskProgress(index, progress) {
+            if (currentCategory) {
+                categories[currentCategory].tasks[index].progress = progress;
+                updateCategoryProgress(currentCategory);
+            }
+        }
+
+        // Eliminar tarea
+        function deleteTask(index) {
+            if (currentCategory) {
+                categories[currentCategory].tasks.splice(index, 1);
+                
+                // Volver a renderizar todas las tareas
+                openEditModal(currentCategory);
+                
+                // Actualizar progreso
+                updateCategoryProgress(currentCategory);
+            }
+        }
+
+        // Actualizar progreso de categoría
+        function updateCategoryProgress(category) {
+            const categoryData = categories[category];
+            let total = 0;
+            
+            categoryData.tasks.forEach(task => {
+                total += task.progress;
+            });
+            
+            const average = categoryData.tasks.length > 0 ? Math.round(total / categoryData.tasks.length) : 0;
+            categoryData.progress = average;
+            
+            // Actualizar gráfico
+            document.getElementById(`${category}-progress`).textContent = average + '%';
+            updateGraph(category);
+            
+            // Actualizar progreso anual
+            updateAnnualProgress();
+        }
+
+        // Actualizar gráfico de categoría
+        function updateGraph(category) {
+            const circle = document.querySelector(`#${category}-graph .progress`);
+            const circumference = 2 * Math.PI * 15.9155;
+            const dashValue = (categories[category].progress / 100) * circumference;
+            circle.style.strokeDasharray = `${dashValue} ${circumference}`;
+        }
+
+        // Renderizar todos los gráficos
+        function renderAllGraphs() {
+            for (const category in categories) {
+                updateGraph(category);
+            }
+        }
+
+        // Actualizar progreso anual
+        function updateAnnualProgress() {
+            let total = 0;
+            let count = 0;
+            
+            for (const category in categories) {
+                total += categories[category].progress;
+                count++;
+            }
+            
+            const annualAverage = count > 0 ? Math.round(total / count) : 0;
+            document.getElementById('annual-progress').textContent = annualAverage + '%';
+            
+            // Actualizar gráfico circular
+            const circle = document.querySelector('.annual.progress');
+            const circumference = 2 * Math.PI * 15.9155;
+            const dashValue = (annualAverage / 100) * circumference;
+            circle.style.strokeDasharray = `${dashValue} ${circumference}`;
+        }
+    </script>
+</body>
+</html>
