@@ -362,3 +362,19 @@ h1 {
 .btn-danger:hover {
     background-color: #c0392b;
 }
+
+.download-controls {
+    text-align: center;
+    margin-top: 30px;
+    margin-bottom: 30px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.export-preview {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    background-color: white;
+}
