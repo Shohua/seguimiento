@@ -415,3 +415,171 @@ function confirmDeleteCategory() {
         updateAnnualProgress();
     }
 }
+
+function generateExportableContent() {
+    const exportContainer = document.createElement('div');
+    exportContainer.id = 'export-container';
+    exportContainer.style.width = '800px';
+    exportContainer.style.padding = '20px';
+    exportContainer.style.backgroundColor = '#ffffff';
+
+    let html = `
+        <style>
+            #export-container {
+                font-family: 'Arial', sans-serif;
+                color: #333;
+                background-color: #ffffff;
+            }
+            #export-container h1, #export-container h2, #export-container h3 {
+                color: #2c3e50;
+                text-align: center;
+            }
+            #export-container .header {
+                border-bottom: 2px solid #2c3e50;
+                padding-bottom: 10px;
+                margin-bottom: 20px;
+            }
+            #export-container .date {
+                font-size: 16px;
+                color: #666;
+                text-align: center;
+            }
+            #export-container .annual-progress {
+                margin-bottom: 30px;
+            }
+            #export-container .category {
+                background-color: #f8f9fa;
+                border: 1px solid #e9ecef;
+                border-radius: 10px;
+                padding: 15px;
+                margin-bottom: 20px;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            }
+            #export-container .category-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 10px;
+            }
+            #export-container .category-title {
+                font-size: 22px;
+                font-weight: bold;
+            }
+            #export-container .category-progress {
+                font-size: 22px;
+                font-weight: bold;
+            }
+            #export-container .category-description {
+                font-size: 14px;
+                color: #666;
+                margin-bottom: 15px;
+            }
+            #export-container .task-list {
+                list-style: none;
+                padding-left: 0;
+                margin-top: 10px;
+            }
+            #export-container .task-item {
+                display: flex;
+                justify-content: space-between;
+                padding: 10px;
+                border-bottom: 1px solid #eee;
+            }
+            #export-container .task-item:last-child {
+                border-bottom: none;
+            }
+            #export-container .task-item span:first-child {
+                font-weight: 500;
+            }
+            #export-container .task-item span:last-child {
+                font-weight: bold;
+            }
+        </style>
+        <div class="header">
+            <h1>Seguimiento de Metas Anuales</h1>
+            <p class="date">${new Date().toLocaleDateString()}</p>
+        </div>
+        <div class="annual-progress">
+            <h2>Avance Anual General</h2>
+            <h3>${document.getElementById('annual-progress').textContent}</h3>
+        </div>
+    `;
+
+    for (const categoryId in categories) {
+        const category = categories[categoryId];
+        html += `
+            <div class="category">
+                <div class="category-header">
+                    <span class="category-title" style="color: ${category.color};">${category.name}</span>
+                    <span class="category-progress" style="color: ${category.color};">${category.progress}%</span>
+                </div>
+                <p class="category-description">${category.description}</p>
+                <ul class="task-list">
+        `;
+        if (category.tasks.length > 0) {
+            category.tasks.forEach(task => {
+                html += `
+                    <li class="task-item">
+                        <span>${task.name}</span>
+                        <span>${task.progress}%</span>
+                    </li>
+                `;
+            });
+        } else {
+            html += `<li>No hay tareas para esta categoría.</li>`;
+        }
+        html += `</ul></div>`;
+    }
+
+    exportContainer.innerHTML = html;
+    return exportContainer;
+}
+
+
+function downloadAsImage() {
+    const exportContent = generateExportableContent();
+    exportContent.classList.add('export-preview');
+    document.body.appendChild(exportContent);
+
+    html2canvas(exportContent, { scale: 2 }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = 'seguimiento_de_metas.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        document.body.removeChild(exportContent);
+    });
+}
+
+function downloadAsPDF() {
+    const { jsPDF } = window.jspdf;
+    const exportContent = generateExportableContent();
+    exportContent.classList.add('export-preview');
+    document.body.appendChild(exportContent);
+
+    html2canvas(exportContent, { scale: 2, windowWidth: exportContent.scrollWidth, windowHeight: exportContent.scrollHeight }).then(canvas => {
+        const imgData = canvas.toDataURL('image/png');
+        const imgWidth = 210; // A4 width in mm
+        const pageHeight = 297; // A4 height in mm
+        const imgHeight = canvas.height * imgWidth / canvas.width;
+        let heightLeft = imgHeight;
+
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        let position = 0;
+
+        // Add a check to avoid adding a blank page if content fits perfectly
+        if (heightLeft > 0) {
+            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+            heightLeft -= pageHeight;
+        }
+
+        while (heightLeft > 0) {
+            position = heightLeft - imgHeight;
+            pdf.addPage();
+            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+            heightLeft -= pageHeight;
+        }
+        
+        pdf.save('seguimiento_de_metas.pdf');
+        document.body.removeChild(exportContent);
+    });
+}
