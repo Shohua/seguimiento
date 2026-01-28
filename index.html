@@ -76,6 +76,11 @@
         </div>
     </div>
 
+    <div class="download-controls">
+        <button class="btn btn-primary" onclick="downloadAsImage()">Descargar como Imagen</button>
+        <button class="btn btn-primary" onclick="downloadAsPDF()">Descargar como PDF</button>
+    </div>
+
     <!-- Firebase SDK -->
     <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.0/firebase-app.js";
@@ -94,6 +99,10 @@
     const app = initializeApp(firebaseConfig);
     const analytics = getAnalytics(app);
     </script>
+
+    <!-- Librerías para exportar -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <!-- Tu app -->
     <script src="app.js"></script>
